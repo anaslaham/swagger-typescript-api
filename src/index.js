@@ -105,7 +105,8 @@ module.exports = {
         })
         .catch((e) => {
           reject(e);
-          throw new Error("Swagger schema parse error!\r\n " + e);
+          console.log(e);
+          //throw new Error("Swagger schema parse error!\r\n " + e);
         });
     }),
 };
