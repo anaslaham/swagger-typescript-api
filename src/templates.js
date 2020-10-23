@@ -8,7 +8,7 @@ const getTemplates = () => {
   return {
     apiTemplate: getTemplate("api"),
     clientTemplate: config.generateClient ? getTemplate("client") : null,
-    routeTypesTemplate: config.generateRouteTypes ? getTemplate("route-types") : null,
+    routeTypesTemplate: getTemplate("route-types"),
   };
 };
 

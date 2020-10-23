@@ -1,11 +1,5 @@
 #!/usr/bin/env node
-
-// Copyright (c) 2019-present acacode
-// Node module: swagger-typescript-api
-// This file is licensed under the MIT License.
-// License text available at https://opensource.org/licenses/MIT
-// Repository https://github.com/acacode/swagger-typescript-api
-
+const util = require("util");
 const mustache = require("mustache");
 const prettier = require("prettier");
 const _ = require("lodash");
@@ -69,14 +63,14 @@ module.exports = {
 
           const componentsMap = createComponentsMap(components);
           const schemasMap = filterComponentsMap(componentsMap, "schemas");
-
           const parsedSchemas = parseSchemas(components);
           const routes = parseRoutes(usageSchema, parsedSchemas, componentsMap, components);
+          //console.log(routes);
           const hasSecurityRoutes = routes.some((route) => route.security);
           const hasQueryRoutes = routes.some((route) => route.hasQuery);
           const hasFormDataRoutes = routes.some((route) => route.hasFormDataParams);
           const apiConfig = createApiConfig({ info, servers }, hasSecurityRoutes);
-
+          //console.log(componentsMap);
           const configuration = {
             apiConfig,
             modelTypes: _.map(schemasMap, getModelType),
@@ -87,21 +81,28 @@ module.exports = {
             routes: groupRoutes(routes),
           };
 
+          schemasMap.forEach((schema, index) => {
+            console.log(getModelType(schema));
+            const content = mustache.render(apiTemplate, {
+              ...configuration,
+              modelTypes: getModelType(schema),
+            });
+            createFile(`output/${getModelType(schema).name}`, `/index.ts`, content);
+          });
+
+          ///console.log(util.inspect(componentsMap, false, null, true /* enable colors */));
           const sourceFile = prettier.format(
             [
               mustache.render(apiTemplate, configuration),
-              generateRouteTypes ? mustache.render(routeTypesTemplate, configuration) : "",
+              mustache.render(routeTypesTemplate, configuration),
               generateClient ? mustache.render(clientTemplate, configuration) : "",
             ].join(""),
             prettierConfig,
           );
-
-          if (pathIsExist(output)) {
-            createFile(output, name, sourceFile);
-            console.log(`✔️  your typescript api file created in "${output}"`);
-          }
-
-          resolve(sourceFile);
+          // if (pathIsExist(output)) {
+          //   createFile(`${output}/`, name, sourceFile);
+          //   console.log(`✔️  your typescript api file created in "${output}"`);
+          // }
         })
         .catch((e) => {
           reject(e);
